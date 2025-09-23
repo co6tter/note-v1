@@ -9,7 +9,9 @@ const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string);
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ConvexProvider client={convex}>
-      <App />
+      <div className="flex h-dvh w-dvh">
+        <App />
+      </div>
     </ConvexProvider>
   </StrictMode>
 );
