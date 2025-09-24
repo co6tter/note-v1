@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.13",
+    "@uidotdev/usehooks": "^2.4.1",
     "convex": "^1.27.1",
     "jotai": "^2.14.0",
     "lucide-react": "^0.544.0",
