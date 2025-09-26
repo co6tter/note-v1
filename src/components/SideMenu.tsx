@@ -1,7 +1,7 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { notesAtom, selectedNoteIdAtom } from "../store";
 import type { Id } from "../../convex/_generated/dataModel";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { api } from "../../convex/_generated/api";
 import { useMutation } from "convex/react";
 import { Note } from "../domain/note";
@@ -32,19 +32,22 @@ function SideMenu() {
     setNotes(notes.filter((note) => note.id !== noteId));
   };
 
+  const handleUpdateTitle = useCallback(
+    async (noteId: Id<"notes">, newTitle: string) => {
+      const note = notes.find((note) => note.id === noteId);
+      if (!note) return;
+
+      await updateNote({ noteId, title: newTitle, content: note.content });
+    },
+    [notes, updateNote]
+  );
+
   const debounceTitle = useDebounce(editingTitle?.title, 500);
   useEffect(() => {
     if (editingTitle && debounceTitle) {
       handleUpdateTitle(editingTitle.id, debounceTitle);
     }
-  }, [debounceTitle]);
-
-  const handleUpdateTitle = async (noteId: Id<"notes">, newTitle: string) => {
-    const note = notes.find((note) => note.id === noteId);
-    if (!note) return;
-
-    await updateNote({ noteId, title: newTitle, content: note.content });
-  };
+  }, [editingTitle, debounceTitle, handleUpdateTitle]);
 
   const handleTitleChange = (noteId: Id<"notes">, title: string) => {
     setEditingTitle({ id: noteId, title });
