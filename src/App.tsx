@@ -1,6 +1,7 @@
 import { useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
 import SideMenu from "./components/SideMenu";
+import Editor from "./components/Editor";
 import { notesAtom } from "./store";
 import { useSetAtom } from "jotai";
 import { useEffect } from "react";
@@ -18,8 +19,9 @@ function App() {
   }, [initNotes, setNotes]);
 
   return (
-    <div>
+    <div className="flex h-screen w-full bg-white">
       <SideMenu />
+      <Editor />
     </div>
   );
 }
