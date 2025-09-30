@@ -1,16 +1,23 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { notesAtom, selectedNoteIdAtom } from "../store";
+import {
+  notesAtom,
+  selectedNoteIdAtom,
+  searchQueryAtom,
+  filteredNotesAtom,
+} from "../store";
 import type { Id } from "../../convex/_generated/dataModel";
 import { useCallback, useEffect, useState } from "react";
 import { api } from "../../convex/_generated/api";
 import { useMutation } from "convex/react";
 import { Note } from "../domain/note";
 import { useDebounce } from "@uidotdev/usehooks";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Search } from "lucide-react";
 
 function SideMenu() {
   const [notes, setNotes] = useAtom(notesAtom);
+  const filteredNotes = useAtomValue(filteredNotesAtom);
   const setSelectedNoteId = useSetAtom(selectedNoteIdAtom);
+  const [searchQuery, setSearchQuery] = useAtom(searchQueryAtom);
   const createNote = useMutation(api.notes.create);
   const deleteNote = useMutation(api.notes.deleteNote);
   const updateNote = useMutation(api.notes.updateNote);
@@ -68,8 +75,18 @@ function SideMenu() {
           <Plus className="h-4 w-4" />
         </button>
       </div>
+      <div className="relative mb-4">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="検索..."
+          className="w-full pl-10 pr-4 py-2 bg-white rounded border border-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400"
+        />
+      </div>
       <ul className="flex flex-col">
-        {notes.map((note) => (
+        {filteredNotes.map((note) => (
           <li
             key={note.id}
             className={`p-2 rounded cursor-pointer flex justify-between items-center group ${
