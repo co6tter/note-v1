@@ -4,6 +4,8 @@ import {
   selectedNoteIdAtom,
   searchQueryAtom,
   filteredNotesAtom,
+  sortOptionAtom,
+  type SortOption,
 } from "../store";
 import type { Id } from "../../convex/_generated/dataModel";
 import { useCallback, useEffect, useState } from "react";
@@ -18,6 +20,7 @@ function SideMenu() {
   const filteredNotes = useAtomValue(filteredNotesAtom);
   const setSelectedNoteId = useSetAtom(selectedNoteIdAtom);
   const [searchQuery, setSearchQuery] = useAtom(searchQueryAtom);
+  const [sortOption, setSortOption] = useAtom(sortOptionAtom);
   const createNote = useMutation(api.notes.create);
   const deleteNote = useMutation(api.notes.deleteNote);
   const updateNote = useMutation(api.notes.updateNote);
@@ -84,6 +87,17 @@ function SideMenu() {
           placeholder="検索..."
           className="w-full pl-10 pr-4 py-2 bg-white rounded border border-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400"
         />
+      </div>
+      <div className="mb-4">
+        <select
+          value={sortOption}
+          onChange={(e) => setSortOption(e.target.value as SortOption)}
+          className="w-full px-4 py-2 bg-white rounded border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+        >
+          <option value="lastEditTime">最終更新日時順</option>
+          <option value="title">タイトル順</option>
+          <option value="createdTime">作成日時順</option>
+        </select>
       </div>
       <ul className="flex flex-col">
         {filteredNotes.map((note) => (
