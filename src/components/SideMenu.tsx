@@ -13,7 +13,7 @@ import { api } from "../../convex/_generated/api";
 import { useMutation } from "convex/react";
 import { Note } from "../domain/note";
 import { useDebounce } from "@uidotdev/usehooks";
-import { Plus, Trash2, Search } from "lucide-react";
+import { Plus, Trash2, Search, Star } from "lucide-react";
 
 function SideMenu() {
   const [notes, setNotes] = useAtom(notesAtom);
@@ -24,6 +24,7 @@ function SideMenu() {
   const createNote = useMutation(api.notes.create);
   const deleteNote = useMutation(api.notes.deleteNote);
   const updateNote = useMutation(api.notes.updateNote);
+  const toggleFavorite = useMutation(api.notes.toggleFavorite);
   const selectedNoteId = useAtomValue(selectedNoteIdAtom);
   const [editingTitle, setEditingTitle] = useState<{
     id: Id<"notes">;
@@ -40,6 +41,20 @@ function SideMenu() {
   const handleDeleteNote = async (noteId: Id<"notes">) => {
     await deleteNote({ noteId });
     setNotes(notes.filter((note) => note.id !== noteId));
+  };
+
+  const handleToggleFavorite = async (noteId: Id<"notes">) => {
+    const note = notes.find((note) => note.id === noteId);
+    if (!note) return;
+
+    const newIsFavorite = !note.isFavorite;
+    await toggleFavorite({ noteId, isFavorite: newIsFavorite });
+
+    setNotes((prev) =>
+      prev.map((note) =>
+        note.id === noteId ? { ...note, isFavorite: newIsFavorite } : note
+      )
+    );
   };
 
   const handleUpdateTitle = useCallback(
@@ -123,15 +138,32 @@ function SideMenu() {
                   : "Never edited"}
               </p>
             </div>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDeleteNote(note.id);
-              }}
-              className="text-gray-400 hover:text-red-500 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity ml-2"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
+            <div className="flex gap-1">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleToggleFavorite(note.id);
+                }}
+                className={`p-1 rounded transition-all ${
+                  note.isFavorite
+                    ? "text-yellow-500"
+                    : "text-gray-400 opacity-0 group-hover:opacity-100"
+                } hover:text-yellow-500`}
+              >
+                <Star
+                  className={`h-4 w-4 ${note.isFavorite ? "fill-current" : ""}`}
+                />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteNote(note.id);
+                }}
+                className="text-gray-400 hover:text-red-500 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
           </li>
         ))}
       </ul>
