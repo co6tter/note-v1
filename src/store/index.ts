@@ -34,6 +34,12 @@ export const filteredNotesAtom = atom((get) => {
   }
 
   const sorted = [...filtered].sort((a, b) => {
+    // Sort favorites first
+    if (a.isFavorite !== b.isFavorite) {
+      return a.isFavorite ? -1 : 1;
+    }
+
+    // Then sort by selected option
     switch (sortOption) {
       case "lastEditTime":
         return (b.lastEditTime || 0) - (a.lastEditTime || 0);
