@@ -19,6 +19,7 @@ export const create = mutation({
       title: args.title,
       content: args.content,
       lastEditTime: Date.now(),
+      isFavorite: false,
     });
 
     return noteId;
@@ -45,6 +46,18 @@ export const updateNote = mutation({
       title: args.title,
       content: args.content,
       lastEditTime: Date.now(),
+    });
+  },
+});
+
+export const toggleFavorite = mutation({
+  args: {
+    noteId: v.id("notes"),
+    isFavorite: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.noteId, {
+      isFavorite: args.isFavorite,
     });
   },
 });

@@ -6,5 +6,6 @@ export default defineSchema({
     title: v.string(),
     content: v.string(),
     lastEditTime: v.number(),
+    isFavorite: v.optional(v.boolean()),
   }),
 });
