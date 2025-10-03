@@ -8,6 +8,18 @@ export const notesAtom = atom<Note[]>([]);
 export const selectedNoteIdAtom = atom<Id<"notes"> | null>(null);
 export const searchQueryAtom = atom<string>("");
 export const sortOptionAtom = atom<SortOption>("lastEditTime");
+export const selectedTagAtom = atom<string | null>(null);
+
+export const allTagsAtom = atom((get) => {
+  const notes = get(notesAtom);
+  const tagsSet = new Set<string>();
+
+  notes.forEach((note) => {
+    note.tags.forEach((tag) => tagsSet.add(tag));
+  });
+
+  return Array.from(tagsSet).sort();
+});
 
 export const selectedNoteAtom = atom((get) => {
   const notes = get(notesAtom);
@@ -21,16 +33,21 @@ export const filteredNotesAtom = atom((get) => {
   const notes = get(notesAtom);
   const searchQuery = get(searchQueryAtom);
   const sortOption = get(sortOptionAtom);
+  const selectedTag = get(selectedTagAtom);
 
   let filtered = notes;
 
   if (searchQuery.trim()) {
     const lowerQuery = searchQuery.toLowerCase();
-    filtered = notes.filter(
+    filtered = filtered.filter(
       (note) =>
         note.title.toLowerCase().includes(lowerQuery) ||
         note.content.toLowerCase().includes(lowerQuery)
     );
+  }
+
+  if (selectedTag) {
+    filtered = filtered.filter((note) => note.tags.includes(selectedTag));
   }
 
   const sorted = [...filtered].sort((a, b) => {

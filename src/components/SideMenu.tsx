@@ -5,6 +5,8 @@ import {
   searchQueryAtom,
   filteredNotesAtom,
   sortOptionAtom,
+  selectedTagAtom,
+  allTagsAtom,
   type SortOption,
 } from "../store";
 import type { Id } from "../../convex/_generated/dataModel";
@@ -13,7 +15,7 @@ import { api } from "../../convex/_generated/api";
 import { useMutation } from "convex/react";
 import { Note } from "../domain/note";
 import { useDebounce } from "@uidotdev/usehooks";
-import { Plus, Trash2, Search, Star } from "lucide-react";
+import { Plus, Trash2, Search, Star, Tag, X } from "lucide-react";
 
 function SideMenu() {
   const [notes, setNotes] = useAtom(notesAtom);
@@ -21,15 +23,23 @@ function SideMenu() {
   const setSelectedNoteId = useSetAtom(selectedNoteIdAtom);
   const [searchQuery, setSearchQuery] = useAtom(searchQueryAtom);
   const [sortOption, setSortOption] = useAtom(sortOptionAtom);
+  const [selectedTag, setSelectedTag] = useAtom(selectedTagAtom);
+  const allTags = useAtomValue(allTagsAtom);
   const createNote = useMutation(api.notes.create);
   const deleteNote = useMutation(api.notes.deleteNote);
   const updateNote = useMutation(api.notes.updateNote);
   const toggleFavorite = useMutation(api.notes.toggleFavorite);
+  const updateTags = useMutation(api.notes.updateTags);
   const selectedNoteId = useAtomValue(selectedNoteIdAtom);
   const [editingTitle, setEditingTitle] = useState<{
     id: Id<"notes">;
     title: string;
   } | null>(null);
+  const [editingTags, setEditingTags] = useState<{
+    id: Id<"notes">;
+    tags: string[];
+  } | null>(null);
+  const [newTag, setNewTag] = useState("");
 
   const handleCreateNote = async () => {
     const noteId = await createNote({ title: "Untitled", content: "" });
@@ -82,6 +92,39 @@ function SideMenu() {
     );
   };
 
+  const handleAddTag = (noteId: Id<"notes">) => {
+    if (!newTag.trim()) return;
+
+    const note = notes.find((note) => note.id === noteId);
+    if (!note) return;
+
+    const updatedTags = [...note.tags, newTag.trim()];
+    updateTags({ noteId, tags: updatedTags });
+
+    setNotes((prev) =>
+      prev.map((note) =>
+        note.id === noteId ? { ...note, tags: updatedTags } : note
+      )
+    );
+
+    setNewTag("");
+    setEditingTags(null);
+  };
+
+  const handleRemoveTag = (noteId: Id<"notes">, tagToRemove: string) => {
+    const note = notes.find((note) => note.id === noteId);
+    if (!note) return;
+
+    const updatedTags = note.tags.filter((tag) => tag !== tagToRemove);
+    updateTags({ noteId, tags: updatedTags });
+
+    setNotes((prev) =>
+      prev.map((note) =>
+        note.id === noteId ? { ...note, tags: updatedTags } : note
+      )
+    );
+  };
+
   return (
     <div className="w-64 h-dvh bg-gray-100 p-4 flex flex-col">
       <div className="flex justify-between items-center mb-4">
@@ -114,6 +157,23 @@ function SideMenu() {
           <option value="createdTime">作成日時順</option>
         </select>
       </div>
+      <div className="mb-4">
+        <div className="flex flex-wrap gap-2">
+          {allTags.map((tag) => (
+            <button
+              key={tag}
+              onClick={() => setSelectedTag(selectedTag === tag ? null : tag)}
+              className={`px-2 py-1 text-xs rounded ${
+                selectedTag === tag
+                  ? "bg-blue-500 text-white"
+                  : "bg-white text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+      </div>
       <ul className="flex flex-col">
         {filteredNotes.map((note) => (
           <li
@@ -137,6 +197,60 @@ function SideMenu() {
                   ? new Date(note.lastEditTime).toLocaleString()
                   : "Never edited"}
               </p>
+              <div className="flex flex-wrap gap-1 mt-1" onClick={(e) => e.stopPropagation()}>
+                {note.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded"
+                  >
+                    {tag}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveTag(note.id, tag);
+                      }}
+                      className="hover:text-blue-900"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                ))}
+                {editingTags?.id === note.id ? (
+                  <input
+                    type="text"
+                    value={newTag}
+                    onChange={(e) => setNewTag(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleAddTag(note.id);
+                      } else if (e.key === "Escape") {
+                        setEditingTags(null);
+                        setNewTag("");
+                      }
+                    }}
+                    onBlur={() => {
+                      if (newTag.trim()) {
+                        handleAddTag(note.id);
+                      } else {
+                        setEditingTags(null);
+                      }
+                    }}
+                    className="px-1 py-0.5 text-xs border border-blue-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    placeholder="タグ名"
+                    autoFocus
+                  />
+                ) : (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingTags({ id: note.id, tags: note.tags });
+                    }}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 text-xs text-gray-500 hover:text-gray-700 border border-dashed border-gray-300 rounded hover:border-gray-400"
+                  >
+                    <Tag className="h-3 w-3" />
+                  </button>
+                )}
+              </div>
             </div>
             <div className="flex gap-1">
               <button
