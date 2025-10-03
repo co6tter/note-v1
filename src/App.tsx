@@ -13,7 +13,7 @@ function App() {
 
   useEffect(() => {
     const notes = initNotes?.map(
-      (note) => new Note(note._id, note.title, note.content, note.lastEditTime, note.isFavorite ?? false)
+      (note) => new Note(note._id, note.title, note.content, note.lastEditTime, note.isFavorite ?? false, note.tags ?? [])
     );
     setNotes(notes || []);
   }, [initNotes, setNotes]);
