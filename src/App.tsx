@@ -2,13 +2,14 @@ import { useQuery } from "convex/react";
 import { api } from "../convex/_generated/api";
 import SideMenu from "./components/SideMenu";
 import Editor from "./components/Editor";
-import { notesAtom } from "./store";
-import { useSetAtom } from "jotai";
+import { notesAtom, isDarkModeAtom } from "./store";
+import { useSetAtom, useAtomValue } from "jotai";
 import { useEffect } from "react";
 import { Note } from "./domain/note";
 
 function App() {
   const setNotes = useSetAtom(notesAtom);
+  const isDarkMode = useAtomValue(isDarkModeAtom);
   const initNotes = useQuery(api.notes.get);
 
   useEffect(() => {
@@ -19,7 +20,7 @@ function App() {
   }, [initNotes, setNotes]);
 
   return (
-    <div className="flex h-screen w-full bg-white">
+    <div className={`flex h-screen w-full ${isDarkMode ? "bg-gray-950" : "bg-white"}`}>
       <SideMenu />
       <Editor />
     </div>
