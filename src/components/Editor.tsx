@@ -1,5 +1,5 @@
 import { useAtomValue, useSetAtom } from "jotai";
-import { saveNoteAtom, selectedNoteAtom } from "../store";
+import { saveNoteAtom, selectedNoteAtom, isDarkModeAtom } from "../store";
 import {
   BoldItalicUnderlineToggles,
   codeBlockPlugin,
@@ -56,6 +56,7 @@ const plugins = [
 
 function Editor() {
   const selectedNote = useAtomValue(selectedNoteAtom);
+  const isDarkMode = useAtomValue(isDarkModeAtom);
   const updateNote = useMutation(api.notes.updateNote);
   const saveNote = useSetAtom(saveNoteAtom);
   const [content, setContent] = useState<string>(selectedNote?.content || "");
@@ -85,14 +86,14 @@ function Editor() {
           key={selectedNote.id}
           markdown={selectedNote.content}
           plugins={plugins}
-          contentEditableClassName="prose max-w-none focus:outline-none"
-          className="h-full"
+          contentEditableClassName={`prose max-w-none focus:outline-none ${isDarkMode ? "prose-invert" : ""}`}
+          className={`h-full ${isDarkMode ? "dark-theme dark-editor" : ""}`}
           placeholder="Markdownを入力してください"
           onChange={handleContentChange}
         />
       ) : (
         <div className="h-screen flex items-center justify-center">
-          <p className="text-gray-500">
+          <p className={isDarkMode ? "text-gray-400" : "text-gray-500"}>
             ノートを選択するか、新しいノートを作成してください
           </p>
         </div>

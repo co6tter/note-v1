@@ -7,6 +7,7 @@ import {
   sortOptionAtom,
   selectedTagAtom,
   allTagsAtom,
+  isDarkModeAtom,
   type SortOption,
 } from "../store";
 import type { Id } from "../../convex/_generated/dataModel";
@@ -15,7 +16,7 @@ import { api } from "../../convex/_generated/api";
 import { useMutation } from "convex/react";
 import { Note } from "../domain/note";
 import { useDebounce } from "@uidotdev/usehooks";
-import { Plus, Trash2, Search, Star, Tag, X } from "lucide-react";
+import { Plus, Trash2, Search, Star, Tag, X, Moon, Sun } from "lucide-react";
 
 function SideMenu() {
   const [notes, setNotes] = useAtom(notesAtom);
@@ -24,6 +25,7 @@ function SideMenu() {
   const [searchQuery, setSearchQuery] = useAtom(searchQueryAtom);
   const [sortOption, setSortOption] = useAtom(sortOptionAtom);
   const [selectedTag, setSelectedTag] = useAtom(selectedTagAtom);
+  const [isDarkMode, setIsDarkMode] = useAtom(isDarkModeAtom);
   const allTags = useAtomValue(allTagsAtom);
   const createNote = useMutation(api.notes.create);
   const deleteNote = useMutation(api.notes.deleteNote);
@@ -126,15 +128,23 @@ function SideMenu() {
   };
 
   return (
-    <div className="w-64 h-dvh bg-gray-100 p-4 flex flex-col">
+    <div className={`w-64 h-dvh p-4 flex flex-col ${isDarkMode ? "bg-gray-900" : "bg-gray-100"}`}>
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold">Notes</h2>
-        <button
-          onClick={handleCreateNote}
-          className="p-2 bg-white rounded hover:bg-gray-50"
-        >
-          <Plus className="h-4 w-4" />
-        </button>
+        <h2 className={`text-2xl font-bold ${isDarkMode ? "text-white" : "text-gray-900"}`}>Notes</h2>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className={`p-2 rounded ${isDarkMode ? "bg-gray-800 hover:bg-gray-700" : "bg-white hover:bg-gray-50"}`}
+          >
+            {isDarkMode ? <Sun className="h-4 w-4 text-yellow-400" /> : <Moon className="h-4 w-4" />}
+          </button>
+          <button
+            onClick={handleCreateNote}
+            className={`p-2 rounded ${isDarkMode ? "bg-gray-800 hover:bg-gray-700 text-white" : "bg-white hover:bg-gray-50"}`}
+          >
+            <Plus className="h-4 w-4" />
+          </button>
+        </div>
       </div>
       <div className="relative mb-4">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -143,14 +153,22 @@ function SideMenu() {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="検索..."
-          className="w-full pl-10 pr-4 py-2 bg-white rounded border border-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-400"
+          className={`w-full pl-10 pr-4 py-2 rounded border focus:outline-none focus:ring-2 ${
+            isDarkMode
+              ? "bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:ring-gray-600"
+              : "bg-white border-gray-200 focus:ring-gray-400"
+          }`}
         />
       </div>
       <div className="mb-4">
         <select
           value={sortOption}
           onChange={(e) => setSortOption(e.target.value as SortOption)}
-          className="w-full px-4 py-2 bg-white rounded border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+          className={`w-full px-4 py-2 rounded border focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${
+            isDarkMode
+              ? "bg-gray-800 border-gray-700 text-white"
+              : "bg-white border-gray-200"
+          }`}
         >
           <option value="lastEditTime">最終更新日時順</option>
           <option value="title">タイトル順</option>
@@ -166,6 +184,8 @@ function SideMenu() {
               className={`px-2 py-1 text-xs rounded ${
                 selectedTag === tag
                   ? "bg-blue-500 text-white"
+                  : isDarkMode
+                  ? "bg-gray-800 text-gray-300 hover:bg-gray-700"
                   : "bg-white text-gray-700 hover:bg-gray-50"
               }`}
             >
@@ -179,7 +199,13 @@ function SideMenu() {
           <li
             key={note.id}
             className={`p-2 rounded cursor-pointer flex justify-between items-center group ${
-              selectedNoteId === note.id ? "bg-white" : "hover:bg-white"
+              selectedNoteId === note.id
+                ? isDarkMode
+                  ? "bg-gray-800"
+                  : "bg-white"
+                : isDarkMode
+                ? "hover:bg-gray-800"
+                : "hover:bg-white"
             }`}
             onClick={() => setSelectedNoteId(note.id)}
           >
@@ -189,10 +215,10 @@ function SideMenu() {
                 value={note.title}
                 onChange={(e) => handleTitleChange(note.id, e.target.value)}
                 onClick={(e) => e.stopPropagation()}
-                className="font-medium bg-transparent outline-none w-full"
+                className={`font-medium bg-transparent outline-none w-full ${isDarkMode ? "text-white" : ""}`}
                 placeholder="Untitled"
               />
-              <p className="text-xs text-gray-500 truncate">
+              <p className={`text-xs truncate ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
                 {note.lastEditTime
                   ? new Date(note.lastEditTime).toLocaleString()
                   : "Never edited"}
@@ -235,7 +261,11 @@ function SideMenu() {
                         setEditingTags(null);
                       }
                     }}
-                    className="px-1 py-0.5 text-xs border border-blue-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className={`px-1 py-0.5 text-xs border rounded focus:outline-none focus:ring-1 focus:ring-blue-500 ${
+                      isDarkMode
+                        ? "bg-gray-700 border-blue-600 text-white"
+                        : "border-blue-300"
+                    }`}
                     placeholder="タグ名"
                     autoFocus
                   />
@@ -245,7 +275,11 @@ function SideMenu() {
                       e.stopPropagation();
                       setEditingTags({ id: note.id, tags: note.tags });
                     }}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 text-xs text-gray-500 hover:text-gray-700 border border-dashed border-gray-300 rounded hover:border-gray-400"
+                    className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs border border-dashed rounded ${
+                      isDarkMode
+                        ? "text-gray-400 hover:text-gray-300 border-gray-600 hover:border-gray-500"
+                        : "text-gray-500 hover:text-gray-700 border-gray-300 hover:border-gray-400"
+                    }`}
                   >
                     <Tag className="h-3 w-3" />
                   </button>

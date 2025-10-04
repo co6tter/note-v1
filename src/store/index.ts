@@ -9,6 +9,7 @@ export const selectedNoteIdAtom = atom<Id<"notes"> | null>(null);
 export const searchQueryAtom = atom<string>("");
 export const sortOptionAtom = atom<SortOption>("lastEditTime");
 export const selectedTagAtom = atom<string | null>(null);
+export const isDarkModeAtom = atom<boolean>(false);
 
 export const allTagsAtom = atom((get) => {
   const notes = get(notesAtom);

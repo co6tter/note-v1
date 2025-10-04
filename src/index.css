@@ -1,1 +1,40 @@
 @import "tailwindcss";
+
+/* MDXEditor dark mode styles */
+.dark-theme {
+  --mdxeditor-bg: #030712;
+  --mdxeditor-border: #374151;
+  --mdxeditor-text: #e5e7eb;
+}
+
+.dark-editor [role="textbox"] {
+  background-color: #030712 !important;
+  color: #e5e7eb !important;
+}
+
+.dark-editor .mdxeditor-toolbar {
+  background-color: #111827 !important;
+  border-bottom: 1px solid #374151 !important;
+}
+
+.dark-editor button {
+  color: #9ca3af !important;
+}
+
+.dark-editor button:hover {
+  background-color: #1f2937 !important;
+  color: #e5e7eb !important;
+}
+
+.dark-editor [data-active="true"] {
+  background-color: #374151 !important;
+  color: #e5e7eb !important;
+}
+
+.dark-editor .cm-editor {
+  background-color: #111827 !important;
+}
+
+.dark-editor .cm-content {
+  color: #e5e7eb !important;
+}
