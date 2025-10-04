@@ -128,15 +128,25 @@ function SideMenu() {
   };
 
   return (
-    <div className={`w-64 h-dvh p-4 flex flex-col ${isDarkMode ? "bg-gray-900" : "bg-gray-100"}`}>
+    <div
+      className={`w-64 h-dvh p-4 flex flex-col ${isDarkMode ? "bg-gray-900" : "bg-gray-100"}`}
+    >
       <div className="flex justify-between items-center mb-4">
-        <h2 className={`text-2xl font-bold ${isDarkMode ? "text-white" : "text-gray-900"}`}>Notes</h2>
+        <h2
+          className={`text-2xl font-bold ${isDarkMode ? "text-white" : "text-gray-900"}`}
+        >
+          Notes
+        </h2>
         <div className="flex gap-2">
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
             className={`p-2 rounded ${isDarkMode ? "bg-gray-800 hover:bg-gray-700" : "bg-white hover:bg-gray-50"}`}
           >
-            {isDarkMode ? <Sun className="h-4 w-4 text-yellow-400" /> : <Moon className="h-4 w-4" />}
+            {isDarkMode ? (
+              <Sun className="h-4 w-4 text-yellow-400" />
+            ) : (
+              <Moon className="h-4 w-4" />
+            )}
           </button>
           <button
             onClick={handleCreateNote}
@@ -185,8 +195,8 @@ function SideMenu() {
                 selectedTag === tag
                   ? "bg-blue-500 text-white"
                   : isDarkMode
-                  ? "bg-gray-800 text-gray-300 hover:bg-gray-700"
-                  : "bg-white text-gray-700 hover:bg-gray-50"
+                    ? "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                    : "bg-white text-gray-700 hover:bg-gray-50"
               }`}
             >
               {tag}
@@ -204,8 +214,8 @@ function SideMenu() {
                   ? "bg-gray-800"
                   : "bg-white"
                 : isDarkMode
-                ? "hover:bg-gray-800"
-                : "hover:bg-white"
+                  ? "hover:bg-gray-800"
+                  : "hover:bg-white"
             }`}
             onClick={() => setSelectedNoteId(note.id)}
           >
@@ -218,12 +228,17 @@ function SideMenu() {
                 className={`font-medium bg-transparent outline-none w-full ${isDarkMode ? "text-white" : ""}`}
                 placeholder="Untitled"
               />
-              <p className={`text-xs truncate ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}>
+              <p
+                className={`text-xs truncate ${isDarkMode ? "text-gray-400" : "text-gray-500"}`}
+              >
                 {note.lastEditTime
                   ? new Date(note.lastEditTime).toLocaleString()
                   : "Never edited"}
               </p>
-              <div className="flex flex-wrap gap-1 mt-1" onClick={(e) => e.stopPropagation()}>
+              <div
+                className="flex flex-wrap gap-1 mt-1"
+                onClick={(e) => e.stopPropagation()}
+              >
                 {note.tags.map((tag) => (
                   <span
                     key={tag}
