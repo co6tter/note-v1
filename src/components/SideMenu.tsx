@@ -16,7 +16,7 @@ import { api } from "../../convex/_generated/api";
 import { useMutation } from "convex/react";
 import { Note } from "../domain/note";
 import { useDebounce } from "@uidotdev/usehooks";
-import { Plus, Trash2, Search, Star, Tag, X, Moon, Sun } from "lucide-react";
+import { Plus, Trash2, Search, Star, Tag, X, Moon, Sun, Copy } from "lucide-react";
 
 function SideMenu() {
   const [notes, setNotes] = useAtom(notesAtom);
@@ -32,6 +32,7 @@ function SideMenu() {
   const updateNote = useMutation(api.notes.updateNote);
   const toggleFavorite = useMutation(api.notes.toggleFavorite);
   const updateTags = useMutation(api.notes.updateTags);
+  const duplicateNote = useMutation(api.notes.duplicateNote);
   const selectedNoteId = useAtomValue(selectedNoteIdAtom);
   const [editingTitle, setEditingTitle] = useState<{
     id: Id<"notes">;
@@ -53,6 +54,23 @@ function SideMenu() {
   const handleDeleteNote = async (noteId: Id<"notes">) => {
     await deleteNote({ noteId });
     setNotes(notes.filter((note) => note.id !== noteId));
+  };
+
+  const handleDuplicateNote = async (noteId: Id<"notes">) => {
+    const note = notes.find((note) => note.id === noteId);
+    if (!note) return;
+
+    const newNoteId = await duplicateNote({ noteId });
+    const duplicatedNote = new Note(
+      newNoteId,
+      `${note.title} (コピー)`,
+      note.content,
+      Date.now(),
+      false,
+      note.tags
+    );
+
+    setNotes([...notes, duplicatedNote]);
   };
 
   const handleToggleFavorite = async (noteId: Id<"notes">) => {
@@ -316,6 +334,16 @@ function SideMenu() {
                 <Star
                   className={`h-4 w-4 ${note.isFavorite ? "fill-current" : ""}`}
                 />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDuplicateNote(note.id);
+                }}
+                className="text-gray-400 hover:text-blue-500 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                title="複製"
+              >
+                <Copy className="h-4 w-4" />
               </button>
               <button
                 onClick={(e) => {

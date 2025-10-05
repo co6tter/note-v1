@@ -74,3 +74,25 @@ export const updateTags = mutation({
     });
   },
 });
+
+export const duplicateNote = mutation({
+  args: {
+    noteId: v.id("notes"),
+  },
+  handler: async (ctx, args) => {
+    const originalNote = await ctx.db.get(args.noteId);
+    if (!originalNote) {
+      throw new Error("Note not found");
+    }
+
+    const newNoteId = await ctx.db.insert("notes", {
+      title: `${originalNote.title} (コピー)`,
+      content: originalNote.content,
+      lastEditTime: Date.now(),
+      isFavorite: false,
+      tags: originalNote.tags || [],
+    });
+
+    return newNoteId;
+  },
+});
