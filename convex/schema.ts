@@ -8,5 +8,10 @@ export default defineSchema({
     lastEditTime: v.number(),
     isFavorite: v.optional(v.boolean()),
     tags: v.optional(v.array(v.string())),
+    folderId: v.optional(v.id("folders")),
+  }),
+  folders: defineTable({
+    name: v.string(),
+    createdTime: v.number(),
   }),
 });

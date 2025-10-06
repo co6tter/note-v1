@@ -7,6 +7,7 @@ export class Note {
   lastEditTime: number;
   isFavorite: boolean;
   tags: string[];
+  folderId: Id<"folders"> | null;
 
   constructor(
     id: Id<"notes">,
@@ -14,7 +15,8 @@ export class Note {
     content: string,
     lastEditTime: number,
     isFavorite: boolean = false,
-    tags: string[] = []
+    tags: string[] = [],
+    folderId: Id<"folders"> | null = null
   ) {
     this.id = id;
     this.title = title;
@@ -22,5 +24,6 @@ export class Note {
     this.lastEditTime = lastEditTime;
     this.isFavorite = isFavorite;
     this.tags = tags;
+    this.folderId = folderId;
   }
 }
