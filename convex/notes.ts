@@ -13,6 +13,7 @@ export const create = mutation({
   args: {
     title: v.string(),
     content: v.string(),
+    folderId: v.optional(v.id("folders")),
   },
   handler: async (ctx, args) => {
     const noteId = await ctx.db.insert("notes", {
@@ -21,6 +22,7 @@ export const create = mutation({
       lastEditTime: Date.now(),
       isFavorite: false,
       tags: [],
+      folderId: args.folderId,
     });
 
     return noteId;
@@ -91,8 +93,21 @@ export const duplicateNote = mutation({
       lastEditTime: Date.now(),
       isFavorite: false,
       tags: originalNote.tags || [],
+      folderId: originalNote.folderId,
     });
 
     return newNoteId;
+  },
+});
+
+export const moveToFolder = mutation({
+  args: {
+    noteId: v.id("notes"),
+    folderId: v.optional(v.id("folders")),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.noteId, {
+      folderId: args.folderId,
+    });
   },
 });

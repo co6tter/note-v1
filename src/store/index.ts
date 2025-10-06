@@ -1,14 +1,17 @@
 import { atom } from "jotai";
 import { Note } from "../domain/note";
+import { Folder } from "../domain/folder";
 import { type Id } from "../../convex/_generated/dataModel";
 
 export type SortOption = "lastEditTime" | "title" | "createdTime";
 
 export const notesAtom = atom<Note[]>([]);
+export const foldersAtom = atom<Folder[]>([]);
 export const selectedNoteIdAtom = atom<Id<"notes"> | null>(null);
 export const searchQueryAtom = atom<string>("");
 export const sortOptionAtom = atom<SortOption>("lastEditTime");
 export const selectedTagAtom = atom<string | null>(null);
+export const selectedFolderIdAtom = atom<Id<"folders"> | null>(null);
 export const isDarkModeAtom = atom<boolean>(false);
 
 export const allTagsAtom = atom((get) => {
@@ -35,6 +38,7 @@ export const filteredNotesAtom = atom((get) => {
   const searchQuery = get(searchQueryAtom);
   const sortOption = get(sortOptionAtom);
   const selectedTag = get(selectedTagAtom);
+  const selectedFolderId = get(selectedFolderIdAtom);
 
   let filtered = notes;
 
@@ -49,6 +53,13 @@ export const filteredNotesAtom = atom((get) => {
 
   if (selectedTag) {
     filtered = filtered.filter((note) => note.tags.includes(selectedTag));
+  }
+
+  if (selectedFolderId !== null) {
+    filtered = filtered.filter((note) => note.folderId === selectedFolderId);
+  } else if (selectedFolderId === null && !searchQuery.trim() && !selectedTag) {
+    // Show only notes without folder when no folder is selected and no search/tag filter
+    filtered = filtered.filter((note) => !note.folderId);
   }
 
   const sorted = [...filtered].sort((a, b) => {
