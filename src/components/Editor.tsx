@@ -17,7 +17,7 @@ import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useCallback, useEffect, useState } from "react";
 import { useDebounce } from "@uidotdev/usehooks";
-import { Download, ChevronDown } from "lucide-react";
+import { Download, ChevronDown, Copy, Check } from "lucide-react";
 import {
   downloadAsMarkdown,
   downloadAsHTML,
@@ -67,6 +67,7 @@ function Editor() {
   const saveNote = useSetAtom(saveNoteAtom);
   const [content, setContent] = useState<string>(selectedNote?.content || "");
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const debounceContent = useDebounce(content, 1000);
   useEffect(() => {
@@ -104,13 +105,46 @@ function Editor() {
     setShowExportMenu(false);
   };
 
+  const handleCopyAll = async () => {
+    if (!selectedNote) return;
+
+    try {
+      await navigator.clipboard.writeText(selectedNote.content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  };
+
   return (
     <div className="flex-1 flex flex-col">
       {selectedNote ? (
         <>
           <div
-            className={`flex justify-end p-4 border-b ${isDarkMode ? "border-gray-700 bg-gray-900" : "border-gray-200 bg-white"}`}
+            className={`flex justify-end gap-2 p-4 border-b ${isDarkMode ? "border-gray-700 bg-gray-900" : "border-gray-200 bg-white"}`}
           >
+            <button
+              onClick={handleCopyAll}
+              className={`flex items-center gap-2 px-4 py-2 rounded ${
+                isDarkMode
+                  ? "bg-gray-800 hover:bg-gray-700 text-white"
+                  : "bg-white hover:bg-gray-50 border border-gray-300"
+              }`}
+              title="全文コピー"
+            >
+              {copied ? (
+                <>
+                  <Check className="h-4 w-4 text-green-500" />
+                  <span className="text-sm">コピーしました</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="h-4 w-4" />
+                  <span className="text-sm">全文コピー</span>
+                </>
+              )}
+            </button>
             <div className="relative">
               <button
                 onClick={() => setShowExportMenu(!showExportMenu)}
