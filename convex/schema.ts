@@ -7,6 +7,7 @@ export default defineSchema({
     content: v.string(),
     lastEditTime: v.number(),
     isFavorite: v.optional(v.boolean()),
+    isPinned: v.optional(v.boolean()),
     tags: v.optional(v.array(v.string())),
     folderId: v.optional(v.id("folders")),
   }),
