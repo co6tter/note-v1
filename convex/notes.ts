@@ -21,6 +21,7 @@ export const create = mutation({
       content: args.content,
       lastEditTime: Date.now(),
       isFavorite: false,
+      isPinned: false,
       tags: [],
       folderId: args.folderId,
     });
@@ -108,6 +109,18 @@ export const moveToFolder = mutation({
   handler: async (ctx, args) => {
     await ctx.db.patch(args.noteId, {
       folderId: args.folderId,
+    });
+  },
+});
+
+export const togglePin = mutation({
+  args: {
+    noteId: v.id("notes"),
+    isPinned: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.noteId, {
+      isPinned: args.isPinned,
     });
   },
 });

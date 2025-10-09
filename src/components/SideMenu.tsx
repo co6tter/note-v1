@@ -16,7 +16,7 @@ import { api } from "../../convex/_generated/api";
 import { useMutation } from "convex/react";
 import { Note } from "../domain/note";
 import { useDebounce } from "@uidotdev/usehooks";
-import { Plus, Trash2, Search, Star, Tag, X, Moon, Sun, Copy } from "lucide-react";
+import { Plus, Trash2, Search, Star, Tag, X, Moon, Sun, Copy, Pin } from "lucide-react";
 
 function SideMenu() {
   const [notes, setNotes] = useAtom(notesAtom);
@@ -31,6 +31,7 @@ function SideMenu() {
   const deleteNote = useMutation(api.notes.deleteNote);
   const updateNote = useMutation(api.notes.updateNote);
   const toggleFavorite = useMutation(api.notes.toggleFavorite);
+  const togglePin = useMutation(api.notes.togglePin);
   const updateTags = useMutation(api.notes.updateTags);
   const duplicateNote = useMutation(api.notes.duplicateNote);
   const selectedNoteId = useAtomValue(selectedNoteIdAtom);
@@ -83,6 +84,20 @@ function SideMenu() {
     setNotes((prev) =>
       prev.map((note) =>
         note.id === noteId ? { ...note, isFavorite: newIsFavorite } : note
+      )
+    );
+  };
+
+  const handleTogglePin = async (noteId: Id<"notes">) => {
+    const note = notes.find((note) => note.id === noteId);
+    if (!note) return;
+
+    const newIsPinned = !note.isPinned;
+    await togglePin({ noteId, isPinned: newIsPinned });
+
+    setNotes((prev) =>
+      prev.map((note) =>
+        note.id === noteId ? { ...note, isPinned: newIsPinned } : note
       )
     );
   };
@@ -320,6 +335,22 @@ function SideMenu() {
               </div>
             </div>
             <div className="flex gap-1">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleTogglePin(note.id);
+                }}
+                className={`p-1 rounded transition-all ${
+                  note.isPinned
+                    ? "text-blue-500"
+                    : "text-gray-400 opacity-0 group-hover:opacity-100"
+                } hover:text-blue-500`}
+                title="ピン留め"
+              >
+                <Pin
+                  className={`h-4 w-4 ${note.isPinned ? "fill-current" : ""}`}
+                />
+              </button>
               <button
                 onClick={(e) => {
                   e.stopPropagation();

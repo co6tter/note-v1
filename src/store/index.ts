@@ -63,7 +63,12 @@ export const filteredNotesAtom = atom((get) => {
   }
 
   const sorted = [...filtered].sort((a, b) => {
-    // Sort favorites first
+    // Sort pinned first
+    if (a.isPinned !== b.isPinned) {
+      return a.isPinned ? -1 : 1;
+    }
+
+    // Then sort favorites
     if (a.isFavorite !== b.isFavorite) {
       return a.isFavorite ? -1 : 1;
     }
