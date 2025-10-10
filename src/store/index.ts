@@ -14,6 +14,7 @@ export const selectedTagAtom = atom<string | null>(null);
 export const selectedFolderIdAtom = atom<Id<"folders"> | null>(null);
 export const isDarkModeAtom = atom<boolean>(false);
 export const isReadOnlyModeAtom = atom<boolean>(false);
+export const isSavingAtom = atom<boolean>(false);
 
 export const allTagsAtom = atom((get) => {
   const notes = get(notesAtom);

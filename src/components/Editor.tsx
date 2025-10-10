@@ -4,6 +4,7 @@ import {
   selectedNoteAtom,
   isDarkModeAtom,
   isReadOnlyModeAtom,
+  isSavingAtom,
 } from "../store";
 import {
   BoldItalicUnderlineToggles,
@@ -22,7 +23,16 @@ import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useCallback, useEffect, useState } from "react";
 import { useDebounce } from "@uidotdev/usehooks";
-import { Download, ChevronDown, Copy, Check, Eye, Edit3 } from "lucide-react";
+import {
+  Download,
+  ChevronDown,
+  Copy,
+  Check,
+  Eye,
+  Edit3,
+  Loader2,
+  CheckCircle2,
+} from "lucide-react";
 import {
   downloadAsMarkdown,
   downloadAsHTML,
@@ -69,6 +79,7 @@ function Editor() {
   const selectedNote = useAtomValue(selectedNoteAtom);
   const isDarkMode = useAtomValue(isDarkModeAtom);
   const [isReadOnlyMode, setIsReadOnlyMode] = useAtom(isReadOnlyModeAtom);
+  const [isSaving, setIsSaving] = useAtom(isSavingAtom);
   const updateNote = useMutation(api.notes.updateNote);
   const saveNote = useSetAtom(saveNoteAtom);
   const [content, setContent] = useState<string>(selectedNote?.content || "");
@@ -78,12 +89,22 @@ function Editor() {
   const debounceContent = useDebounce(content, 1000);
   useEffect(() => {
     if (!selectedNote || !debounceContent) return;
-    updateNote({
-      noteId: selectedNote.id,
-      title: selectedNote.title,
-      content: debounceContent,
-    });
-  }, [debounceContent, selectedNote, updateNote]);
+
+    const saveContent = async () => {
+      setIsSaving(true);
+      try {
+        await updateNote({
+          noteId: selectedNote.id,
+          title: selectedNote.title,
+          content: debounceContent,
+        });
+      } finally {
+        setIsSaving(false);
+      }
+    };
+
+    saveContent();
+  }, [debounceContent, selectedNote, updateNote, setIsSaving]);
 
   const handleContentChange = useCallback(
     (newContent: string) => {
@@ -128,105 +149,122 @@ function Editor() {
       {selectedNote ? (
         <>
           <div
-            className={`flex justify-end gap-2 p-4 border-b ${isDarkMode ? "border-gray-700 bg-gray-900" : "border-gray-200 bg-white"}`}
+            className={`flex justify-between items-center gap-2 p-4 border-b ${isDarkMode ? "border-gray-700 bg-gray-900" : "border-gray-200 bg-white"}`}
           >
-            <button
-              onClick={() => setIsReadOnlyMode(!isReadOnlyMode)}
-              className={`flex items-center gap-2 px-4 py-2 rounded ${
-                isDarkMode
-                  ? "bg-gray-800 hover:bg-gray-700 text-white"
-                  : "bg-white hover:bg-gray-50 border border-gray-300"
-              }`}
-              title={isReadOnlyMode ? "編集モード" : "読み取り専用モード"}
+            <div
+              className={`flex items-center gap-2 text-sm ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
             >
-              {isReadOnlyMode ? (
+              {isSaving ? (
                 <>
-                  <Edit3 className="h-4 w-4" />
-                  <span className="text-sm">編集モード</span>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>保存中...</span>
                 </>
               ) : (
                 <>
-                  <Eye className="h-4 w-4" />
-                  <span className="text-sm">読み取り専用</span>
+                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  <span>保存済み</span>
                 </>
               )}
-            </button>
-            <button
-              onClick={handleCopyAll}
-              className={`flex items-center gap-2 px-4 py-2 rounded ${
-                isDarkMode
-                  ? "bg-gray-800 hover:bg-gray-700 text-white"
-                  : "bg-white hover:bg-gray-50 border border-gray-300"
-              }`}
-              title="全文コピー"
-            >
-              {copied ? (
-                <>
-                  <Check className="h-4 w-4 text-green-500" />
-                  <span className="text-sm">コピーしました</span>
-                </>
-              ) : (
-                <>
-                  <Copy className="h-4 w-4" />
-                  <span className="text-sm">全文コピー</span>
-                </>
-              )}
-            </button>
-            <div className="relative">
+            </div>
+            <div className="flex gap-2">
               <button
-                onClick={() => setShowExportMenu(!showExportMenu)}
+                onClick={() => setIsReadOnlyMode(!isReadOnlyMode)}
                 className={`flex items-center gap-2 px-4 py-2 rounded ${
                   isDarkMode
                     ? "bg-gray-800 hover:bg-gray-700 text-white"
                     : "bg-white hover:bg-gray-50 border border-gray-300"
                 }`}
+                title={isReadOnlyMode ? "編集モード" : "読み取り専用モード"}
               >
-                <Download className="h-4 w-4" />
-                <span className="text-sm">エクスポート</span>
-                <ChevronDown className="h-4 w-4" />
+                {isReadOnlyMode ? (
+                  <>
+                    <Edit3 className="h-4 w-4" />
+                    <span className="text-sm">編集モード</span>
+                  </>
+                ) : (
+                  <>
+                    <Eye className="h-4 w-4" />
+                    <span className="text-sm">読み取り専用</span>
+                  </>
+                )}
               </button>
-              {showExportMenu && (
-                <div
-                  className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg z-10 ${
+              <button
+                onClick={handleCopyAll}
+                className={`flex items-center gap-2 px-4 py-2 rounded ${
+                  isDarkMode
+                    ? "bg-gray-800 hover:bg-gray-700 text-white"
+                    : "bg-white hover:bg-gray-50 border border-gray-300"
+                }`}
+                title="全文コピー"
+              >
+                {copied ? (
+                  <>
+                    <Check className="h-4 w-4 text-green-500" />
+                    <span className="text-sm">コピーしました</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-4 w-4" />
+                    <span className="text-sm">全文コピー</span>
+                  </>
+                )}
+              </button>
+              <div className="relative">
+                <button
+                  onClick={() => setShowExportMenu(!showExportMenu)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded ${
                     isDarkMode
-                      ? "bg-gray-800 border border-gray-700"
-                      : "bg-white border border-gray-200"
+                      ? "bg-gray-800 hover:bg-gray-700 text-white"
+                      : "bg-white hover:bg-gray-50 border border-gray-300"
                   }`}
                 >
-                  <div className="py-1">
-                    <button
-                      onClick={() => handleExport("markdown")}
-                      className={`w-full text-left px-4 py-2 text-sm ${
-                        isDarkMode
-                          ? "text-gray-300 hover:bg-gray-700"
-                          : "text-gray-700 hover:bg-gray-100"
-                      }`}
-                    >
-                      Markdown (.md)
-                    </button>
-                    <button
-                      onClick={() => handleExport("html")}
-                      className={`w-full text-left px-4 py-2 text-sm ${
-                        isDarkMode
-                          ? "text-gray-300 hover:bg-gray-700"
-                          : "text-gray-700 hover:bg-gray-100"
-                      }`}
-                    >
-                      HTML (.html)
-                    </button>
-                    <button
-                      onClick={() => handleExport("text")}
-                      className={`w-full text-left px-4 py-2 text-sm ${
-                        isDarkMode
-                          ? "text-gray-300 hover:bg-gray-700"
-                          : "text-gray-700 hover:bg-gray-100"
-                      }`}
-                    >
-                      テキスト (.txt)
-                    </button>
+                  <Download className="h-4 w-4" />
+                  <span className="text-sm">エクスポート</span>
+                  <ChevronDown className="h-4 w-4" />
+                </button>
+                {showExportMenu && (
+                  <div
+                    className={`absolute right-0 mt-2 w-48 rounded-md shadow-lg z-10 ${
+                      isDarkMode
+                        ? "bg-gray-800 border border-gray-700"
+                        : "bg-white border border-gray-200"
+                    }`}
+                  >
+                    <div className="py-1">
+                      <button
+                        onClick={() => handleExport("markdown")}
+                        className={`w-full text-left px-4 py-2 text-sm ${
+                          isDarkMode
+                            ? "text-gray-300 hover:bg-gray-700"
+                            : "text-gray-700 hover:bg-gray-100"
+                        }`}
+                      >
+                        Markdown (.md)
+                      </button>
+                      <button
+                        onClick={() => handleExport("html")}
+                        className={`w-full text-left px-4 py-2 text-sm ${
+                          isDarkMode
+                            ? "text-gray-300 hover:bg-gray-700"
+                            : "text-gray-700 hover:bg-gray-100"
+                        }`}
+                      >
+                        HTML (.html)
+                      </button>
+                      <button
+                        onClick={() => handleExport("text")}
+                        className={`w-full text-left px-4 py-2 text-sm ${
+                          isDarkMode
+                            ? "text-gray-300 hover:bg-gray-700"
+                            : "text-gray-700 hover:bg-gray-100"
+                        }`}
+                      >
+                        テキスト (.txt)
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
           <MDXEditor
