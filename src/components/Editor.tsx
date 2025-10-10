@@ -1,5 +1,10 @@
-import { useAtomValue, useSetAtom } from "jotai";
-import { saveNoteAtom, selectedNoteAtom, isDarkModeAtom } from "../store";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import {
+  saveNoteAtom,
+  selectedNoteAtom,
+  isDarkModeAtom,
+  isReadOnlyModeAtom,
+} from "../store";
 import {
   BoldItalicUnderlineToggles,
   codeBlockPlugin,
@@ -17,7 +22,7 @@ import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useCallback, useEffect, useState } from "react";
 import { useDebounce } from "@uidotdev/usehooks";
-import { Download, ChevronDown, Copy, Check } from "lucide-react";
+import { Download, ChevronDown, Copy, Check, Eye, Edit3 } from "lucide-react";
 import {
   downloadAsMarkdown,
   downloadAsHTML,
@@ -63,6 +68,7 @@ const plugins = [
 function Editor() {
   const selectedNote = useAtomValue(selectedNoteAtom);
   const isDarkMode = useAtomValue(isDarkModeAtom);
+  const [isReadOnlyMode, setIsReadOnlyMode] = useAtom(isReadOnlyModeAtom);
   const updateNote = useMutation(api.notes.updateNote);
   const saveNote = useSetAtom(saveNoteAtom);
   const [content, setContent] = useState<string>(selectedNote?.content || "");
@@ -124,6 +130,27 @@ function Editor() {
           <div
             className={`flex justify-end gap-2 p-4 border-b ${isDarkMode ? "border-gray-700 bg-gray-900" : "border-gray-200 bg-white"}`}
           >
+            <button
+              onClick={() => setIsReadOnlyMode(!isReadOnlyMode)}
+              className={`flex items-center gap-2 px-4 py-2 rounded ${
+                isDarkMode
+                  ? "bg-gray-800 hover:bg-gray-700 text-white"
+                  : "bg-white hover:bg-gray-50 border border-gray-300"
+              }`}
+              title={isReadOnlyMode ? "編集モード" : "読み取り専用モード"}
+            >
+              {isReadOnlyMode ? (
+                <>
+                  <Edit3 className="h-4 w-4" />
+                  <span className="text-sm">編集モード</span>
+                </>
+              ) : (
+                <>
+                  <Eye className="h-4 w-4" />
+                  <span className="text-sm">読み取り専用</span>
+                </>
+              )}
+            </button>
             <button
               onClick={handleCopyAll}
               className={`flex items-center gap-2 px-4 py-2 rounded ${
@@ -210,6 +237,7 @@ function Editor() {
             className={`flex-1 ${isDarkMode ? "dark-theme dark-editor" : ""}`}
             placeholder="Markdownを入力してください"
             onChange={handleContentChange}
+            readOnly={isReadOnlyMode}
           />
         </>
       ) : (
